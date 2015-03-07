@@ -1,0 +1,43 @@
+{
+  "name": "katielockhart",
+  "version": "0.0.0",
+  "description": "===\r Do you like Twig templating? Less? RequireJS? Bower? Making powerful wordpress websites really really quickly? Not having to have an ice cold shower when it's time to maintain an old site of yours?",
+  "main": "js/init.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://JoeSwann@bitbucket.org/JoeSwann/katielockhart.com.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babelify": "^5.0.4",
+    "browserify": "*",
+    "coffee-script": "*",
+    "coffeeify": "*",
+    "deamdify": "*",
+    "debowerify": "*",
+    "gulp": "*",
+    "gulp-autoprefixer": "*",
+    "gulp-babel": "^4.0.0",
+    "gulp-bower": "*",
+    "gulp-browserify": "^0.5.1",
+    "gulp-cache": "*",
+    "gulp-changed": "*",
+    "gulp-clean": "*",
+    "gulp-concat": "*",
+    "gulp-connect": "*",
+    "gulp-cssmin": "*",
+    "gulp-imagemin": "*",
+    "gulp-jade": "*",
+    "gulp-load-plugins": "*",
+    "gulp-open": "*",
+    "gulp-plumber": "*",
+    "gulp-util": "*",
+    "gulp-watch": "*",
+    "uglifyify": "*",
+    "vinyl-source-stream": "*"
+  }
+}

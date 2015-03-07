@@ -1,0 +1,30 @@
+/* MASTER */
+
+@wrap: 1280px; 
+@gutter: 16px;
+
+@d : '/css/';
+  
+@import 'utils/reset.less';
+@import '../fnt/fonts.less';
+@import 'utils/grid.less';
+@import 'utils/helpers.less';
+@import 'utils/css3.less';
+@import 'utils/normalise.less';
+
+
+// Example LESS
+// Shows how to use helpers to rapidly create themes
+html body {
+  .sans_serif;
+}
+
+#brain {
+  .fixPos(50%,0,50%,100%);
+  background:#000;
+}
+
+#environment {
+  .fixPos(0,0,50%,100%);
+  background:#ccc;
+}

@@ -32,6 +32,7 @@
     "gulp-cssmin": "*",
     "gulp-imagemin": "*",
     "gulp-jade": "*",
+    "gulp-less": "^3.0.1",
     "gulp-load-plugins": "*",
     "gulp-open": "*",
     "gulp-plumber": "*",

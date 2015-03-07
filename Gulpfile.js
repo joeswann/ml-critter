@@ -1,13 +1,16 @@
 'use strict';
 var gulp       = require('gulp');
+var less       = require('gulp-less');
 var babelify   = require('babelify');
 var browserify = require('browserify');
 var source     = require('vinyl-source-stream');
  
+
+//Default
 gulp.task('default', function () {
-  
+  //Javascript
   browserify({
-    entries : './js/main.js'
+    entries : './js/src/init.js'
   })
   .transform(babelify)
   .transform('debowerify')
@@ -16,8 +19,14 @@ gulp.task('default', function () {
   .bundle()
   .pipe(source('app.js'))
   .pipe(gulp.dest('./js/dist')); 
+
+  //Less
+  gulp.src('./css/src/**.less')
+  .pipe(less())
+  .pipe(gulp.dest('./css/dist'));
 });
 
+//Watch
 gulp.task('watch', function(){
-  gulp.watch(['./js/inc/**','./js/main.js'], ['default']);
+  gulp.watch(['./css/src/**','./js/src/**'], ['default']);
 });  

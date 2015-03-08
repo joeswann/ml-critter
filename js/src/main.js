@@ -14,8 +14,6 @@ export default class Main {
     this.env      = new Environment(this);
     this.creature = new Creature(this);
     this.render   = new Render(this);
-
-    //Initialise classes
   } 
 
   update() {

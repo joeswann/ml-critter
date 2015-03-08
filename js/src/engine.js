@@ -44,6 +44,7 @@ export default class Engine {
   }
 
   update() {
+
     this.main._fps = this.getFps();
     if(this.run) this.main.update();
   }

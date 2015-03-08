@@ -1,3 +1,4 @@
+import Physics from './physics';
 
 export default class Render {
   constructor(main) {
@@ -15,10 +16,12 @@ export default class Render {
 
     this.env_context   = this.$env[0].getContext("2d");
     this.brain_context = this.$brain[0].getContext("2d");
+
+    this.physics = new Physics(this);
   }
 
   update() {
-    this.environment();
+    this.physics.update();
     this.brain();
     this.info();
   }
@@ -30,7 +33,7 @@ export default class Render {
 
   environment() {
     //Refresh background
-    this.clear(this.env_context, '#111');
+    //this.clear(this.env_context, '#111');
     //Draw creature
     //Draw avoid
     //Draw find
@@ -39,21 +42,21 @@ export default class Render {
   brain() {
     var brain = this.main.creature.brain;
     //Refresh background 
-    this.clear(this.brain_context, '#aaf');
+    this.clear(this.brain_context, '#aaa');
 
     //Draw inputs
     //Draw outputs
     //Draw neurons
     this.neurons(brain.neurons);
-    //Draw connections 
+    //Draw synapses 
   }
 
-  neurons(neurons) {
+  neurons(neurons) { 
     var i = neurons.length;
     while(i--) {
       var neuron = neurons[i];
       this.drawCircle(this.brain_context, {
-        c : '#666',
+        c : '#000',
         x : neuron.position.x * this.width,
         y : neuron.position.y * this.height,
         r : neuron.radius

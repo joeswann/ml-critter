@@ -274,7 +274,6 @@ html body {
   height: 100%;
   z-index: 10;
   position: fixed;
-  background: #fff;
 }
 #environment {
   display: block;
@@ -285,7 +284,6 @@ html body {
   height: 100%;
   z-index: 10;
   position: fixed;
-  background: #fff;
 }
 #info {
   display: block;

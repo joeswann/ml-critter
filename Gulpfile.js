@@ -7,7 +7,11 @@ var source     = require('vinyl-source-stream');
  
 
 //Default
-gulp.task('default', function () {
+gulp.task('default', function() {
+  gulp.start('js', 'less');
+});
+
+gulp.task('js', function () {
   //Javascript
   browserify({
     entries : './js/src/init.js'
@@ -19,7 +23,9 @@ gulp.task('default', function () {
   .bundle()
   .pipe(source('app.js'))
   .pipe(gulp.dest('./js/dist')); 
-
+});
+ 
+gulp.task('less', function () {
   //Less
   gulp.src('./css/src/**.less')
   .pipe(less())
@@ -28,5 +34,6 @@ gulp.task('default', function () {
 
 //Watch
 gulp.task('watch', function(){
-  gulp.watch(['./css/src/**','./js/src/**'], ['default']);
+  gulp.watch(['./js/src/**'], ['js']);
+  gulp.watch(['./css/src/**'], ['less']);
 });  

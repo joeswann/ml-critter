@@ -1,46 +1,26 @@
-import Draw from './draw';
+import Render from './render';
 import Environment from './environment';
-import Brain from './brain';
+import Creature from './creature';
 
 export default class Main {
-  constructor() {
+  constructor(settings) {
     console.log('Main init');
 
     //Engine
-    this._run   = true;
-    this._frame = 0;
-    this._stop  = 1000;
-
-    //Environment
-    this._env = {
-      obstacle_count : 10,
-      target_count : 10
-    }
-
-    //Brain
-    this._brain = {
-      neuron_count : 100,
-      synapse_count : 1000
-    }
+    this._fps = 0;
+    this._settings = settings;
 
     //Classes
-    this.env   = new Environment(this);
-    this.brain = new Brain(this);
-    this.draw  = new Draw(this);
+    this.env      = new Environment(this);
+    this.creature = new Creature(this);
+    this.render   = new Render(this);
 
     //Initialise classes
-
-    //Start simulation
-    this.loop(); 
   } 
 
-  loop() {
+  update() {
     
-    this.draw.update();
+    this.render.update();
 
-    //Handle frame
-    this._frame++;
-    if(this._frame > this._stop) this._run = false;
-    if(this._run) window.requestAnimationFrame(this.loop());
   }
 }   

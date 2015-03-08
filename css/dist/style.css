@@ -289,7 +289,7 @@ html body {
   display: block;
   position: absolute;
   visibility: visible;left:10px;
-  visibility: visible;top:10px;
+  visibility: visible;bottom:10px;
   width: auto;
   height: auto;
   z-index: 10;

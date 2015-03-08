@@ -1,10 +1,8 @@
-import Physics from './physics';
 
 export default class Render {
   constructor(main) {
     this.main   = main;
 
-    this.$env   = $('#environment');
     this.$brain = $('#brain');
     this.$info  = $('#info');
 
@@ -12,31 +10,18 @@ export default class Render {
     this.height = window.innerHeight;
 
     this.$brain.attr('width',  this.width).attr('height', this.height);
-    this.$env.attr('width',  this.width).attr('height', this.height);
 
-    this.env_context   = this.$env[0].getContext("2d");
     this.brain_context = this.$brain[0].getContext("2d");
-
-    this.physics = new Physics(this);
   }
 
-  update() {
-    this.physics.update();
+  tick() {
     this.brain();
     this.info();
   }
 
   info() { 
-    var string = "Fps: " + this.main._fps;
-    this.$info.text(string);
-  }
-
-  environment() {
-    //Refresh background
-    //this.clear(this.env_context, '#111');
-    //Draw creature
-    //Draw avoid
-    //Draw find
+    // var string = "Fps: " + this.main._fps;
+    // this.$info.text(string);
   }
 
   brain() {

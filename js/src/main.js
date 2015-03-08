@@ -7,18 +7,18 @@ export default class Main {
     console.log('Main init');
 
     //Engine
-    this._fps = 0;
     this._settings = settings;
-
-    //Classes
-    this.env      = new Environment(this);
-    this.creature = new Creature(this);
-    this.render   = new Render(this);
   } 
 
-  update() {
-    
-    this.render.update();
+  start() {
+    //Classes
+    this.environment = new Environment(this);
+    this.creature    = new Creature(this);
+    this.render      = new Render(this);
+  }
 
+  tick(time,dt) {
+    this.environment.tick(time,dt);
+    this.render.tick();
   }
 }   

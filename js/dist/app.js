@@ -10,8 +10,6 @@ var Engine = _interopRequire(require("./engine"));
 (function ($) {
   window.$ = $;
   var engine = new Engine({
-    _fps: 300,
-    _raf: true,
     _settings: {
       brain: {
         neurons: 100,
@@ -82,7 +80,7 @@ var Brain = (function () {
 
 module.exports = Brain;
 
-},{"./neuron":10,"./synapse":13}],5:[function(require,module,exports){
+},{"./neuron":10,"./synapse":12}],5:[function(require,module,exports){
 "use strict";
 
 var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
@@ -139,6 +137,8 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
+var PhysicsJS = _interopRequire(require("./../lib/physicsjs/dist/physicsjs-full.js"));
+
 var Main = _interopRequire(require("./main"));
 
 var Engine = (function () {
@@ -147,93 +147,21 @@ var Engine = (function () {
 
     _classCallCheck(this, Engine);
 
-    this._fps = opts._fps;
-    this._raf = opts._raf;
-
-    this.run = true;
-    this.startTime = 0;
-    this.frameNumber = 0;
-
-    this.then = 0;
-    this.interval = 0;
-
-    //Start window listener
-    window.addEventListener("keyup", function (e) {
-      return _this.keyboardHandler(e);
-    }, false);
-
     this.main = new Main(opts._settings);
 
-    this.start();
+    PhysicsJS(function (world) {
+      _this.main.world = world;
+      _this.main.start();
+      PhysicsJS.util.ticker.on(function (time, dt) {
+        _this.tick(time, dt);
+      });
+    });
   }
 
   _createClass(Engine, {
-    start: {
-      value: function start() {
-        var _this = this;
-
-        this.then = Date.now();
-        this.interval = 1000 / this._fps;
-
-        if (this._raf) {
-          this.loop();
-        } else {
-          setInterval(function () {
-            return _this.update();
-          }, 0);
-        }
-      }
-    },
-    loop: {
-      value: function loop() {
-        var _this = this;
-
-        requestAnimationFrame(function () {
-          return _this.loop();
-        });
-        var now = Date.now();
-        var delta = now - this.then;
-
-        if (delta > this.interval) {
-          this.then = now - delta % this.interval;
-          this.update();
-        }
-      }
-    },
-    update: {
-      value: function update() {
-
-        this.main._fps = this.getFps();
-        if (this.run) this.main.update();
-      }
-    },
-    getFps: {
-      value: function getFps() {
-        this.frameNumber++;
-        var d = new Date().getTime(),
-            currentTime = (d - this.startTime) / 1000,
-            result = Math.floor(this.frameNumber / currentTime);
-
-        if (currentTime > 1) {
-          this.startTime = new Date().getTime();
-          this.frameNumber = 0;
-        }
-
-        return result;
-      }
-    },
-    keyboardHandler: {
-      value: function keyboardHandler(e) {
-        //spacebar
-        if (e.keyCode == 32) {
-          console.log("pausing");
-          this.togglePause();
-        }
-      }
-    },
-    togglePause: {
-      value: function togglePause() {
-        this.run = !this.run;
+    tick: {
+      value: function tick(time, dt) {
+        this.main.tick(time, dt);
       }
     }
   });
@@ -243,30 +171,104 @@ var Engine = (function () {
 
 module.exports = Engine;
 
-},{"./main":9}],7:[function(require,module,exports){
+},{"./../lib/physicsjs/dist/physicsjs-full.js":3,"./main":9}],7:[function(require,module,exports){
 "use strict";
+
+var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
 
 var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
+var PhysicsJS = _interopRequire(require("./../lib/physicsjs/dist/physicsjs-full.js"));
+
 var Environment = (function () {
-  function Environment(main) {
-    _classCallCheck(this, Environment);
-  }
+    function Environment(main) {
+        _classCallCheck(this, Environment);
 
-  _createClass(Environment, {
-    update: {
-      value: function update() {}
+        this.main = main;
+        this.$environmnet = $("#environment");
+
+        this.width = window.innerWidth / 2;
+        this.height = window.innerHeight;
+
+        //Putting render stuff for env in here because
+        //its coupled with the physics engine
+
+        var world = main.world;
+        var viewWidth = this.width;
+        var viewHeight = this.height;
+
+        var renderer = PhysicsJS.renderer("canvas", {
+            el: "environment",
+            width: viewWidth,
+            height: viewHeight,
+            autoResize: false,
+            meta: false, // don't display meta data
+            styles: {
+                // set colors for the circle bodies
+                circle: {
+                    strokeStyle: "#351024",
+                    lineWidth: 1,
+                    fillStyle: "#d33682",
+                    angleIndicator: "#351024"
+                }
+            }
+        });
+
+        // add the renderer
+        world.add(renderer);
+
+        // render on each step
+        world.on("step", function () {
+            world.render();
+        });
+
+        // bounds of the window
+        var viewportBounds = PhysicsJS.aabb(0, 0, viewWidth, viewHeight);
+
+        // constrain objects to these bounds
+        world.add(PhysicsJS.behavior("edge-collision-detection", {
+            aabb: viewportBounds,
+            restitution: 0.99,
+            cof: 0.99
+        }));
+
+        // add a circle
+        world.add(PhysicsJS.body("circle", {
+            x: viewWidth / 2, // x-coordinate
+            y: viewHeight / 2, // y-coordinate
+            vx: 0, // velocity in x-direction
+            vy: 0, // velocity in y-direction
+            radius: 20
+        }));
+
+        // ensure objects bounce when edge collision is detected
+        world.add(PhysicsJS.behavior("body-impulse-response"));
+
+        // start the ticker
+        PhysicsJS.util.ticker.start();
     }
-  });
 
-  return Environment;
+    _createClass(Environment, {
+        tick: {
+            value: function tick(time, dt) {
+                //Refresh background
+                //this.clear(this.env_context, '#111');
+                //Draw creature
+                //Draw avoid
+                //Draw find
+                this.main.world.step(time);
+            }
+        }
+    });
+
+    return Environment;
 })();
 
 module.exports = Environment;
 
-},{}],8:[function(require,module,exports){
+},{"./../lib/physicsjs/dist/physicsjs-full.js":3}],8:[function(require,module,exports){
 "use strict";
 
 var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -313,20 +315,22 @@ var Main = (function () {
     console.log("Main init");
 
     //Engine
-    this._fps = 0;
     this._settings = settings;
-
-    //Classes
-    this.env = new Environment(this);
-    this.creature = new Creature(this);
-    this.render = new Render(this);
   }
 
   _createClass(Main, {
-    update: {
-      value: function update() {
-
-        this.render.update();
+    start: {
+      value: function start() {
+        //Classes
+        this.environment = new Environment(this);
+        this.creature = new Creature(this);
+        this.render = new Render(this);
+      }
+    },
+    tick: {
+      value: function tick(time, dt) {
+        this.environment.tick(time, dt);
+        this.render.tick();
       }
     }
   });
@@ -336,7 +340,7 @@ var Main = (function () {
 
 module.exports = Main;
 
-},{"./creature":5,"./environment":7,"./render":12}],10:[function(require,module,exports){
+},{"./creature":5,"./environment":7,"./render":11}],10:[function(require,module,exports){
 "use strict";
 
 var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
@@ -379,111 +383,9 @@ module.exports = Neuron;
 },{"./helpers":8}],11:[function(require,module,exports){
 "use strict";
 
-var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
-
 var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-var PhysicsJS = _interopRequire(require("./../lib/physicsjs/dist/physicsjs-full.js"));
-
-var Physics = (function () {
-  function Physics(render) {
-    var _this = this;
-
-    _classCallCheck(this, Physics);
-
-    console.log("Init physics");
-
-    this.world = false;
-    PhysicsJS(function (world) {
-
-      var viewWidth = render.width;
-      var viewHeight = render.height;
-
-      var renderer = PhysicsJS.renderer("canvas", {
-        el: "environment",
-        width: viewWidth,
-        height: viewHeight,
-        autoResize: false,
-        meta: false, // don't display meta data
-        styles: {
-          // set colors for the circle bodies
-          circle: {
-            strokeStyle: "#351024",
-            lineWidth: 1,
-            fillStyle: "#d33682",
-            angleIndicator: "#351024"
-          }
-        }
-      });
-
-      // add the renderer
-      world.add(renderer);
-
-      // render on each step
-      world.on("step", function () {
-        world.render();
-      });
-
-      // bounds of the window
-      var viewportBounds = PhysicsJS.aabb(0, 0, viewWidth, viewHeight);
-
-      // constrain objects to these bounds
-      world.add(PhysicsJS.behavior("edge-collision-detection", {
-        aabb: viewportBounds,
-        restitution: 0.99,
-        cof: 0.99
-      }));
-
-      // add a circle
-      world.add(PhysicsJS.body("circle", {
-        x: 50, // x-coordinate
-        y: 30, // y-coordinate
-        vx: 0.2, // velocity in x-direction
-        vy: 0.01, // velocity in y-direction
-        radius: 20
-      }));
-
-      // ensure objects bounce when edge collision is detected
-      world.add(PhysicsJS.behavior("body-impulse-response"));
-
-      // subscribe to ticker to advance the simulation
-      //PhysicsJS.util.ticker.on(function( time, dt ){
-      //world.step( time );
-      //});
-
-      // start the ticker
-      PhysicsJS.util.ticker.start();
-
-      _this.world = world;
-    });
-  }
-
-  _createClass(Physics, {
-    update: {
-      value: function update() {
-        console.log("tick");
-        this.world.step(PhysicsJS.util.ticker.now());
-      }
-    }
-  });
-
-  return Physics;
-})();
-
-module.exports = Physics;
-
-},{"./../lib/physicsjs/dist/physicsjs-full.js":3}],12:[function(require,module,exports){
-"use strict";
-
-var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
-
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-var Physics = _interopRequire(require("./physics"));
 
 var Render = (function () {
   function Render(main) {
@@ -491,7 +393,6 @@ var Render = (function () {
 
     this.main = main;
 
-    this.$env = $("#environment");
     this.$brain = $("#brain");
     this.$info = $("#info");
 
@@ -499,30 +400,19 @@ var Render = (function () {
     this.height = window.innerHeight;
 
     this.$brain.attr("width", this.width).attr("height", this.height);
-    this.$env.attr("width", this.width).attr("height", this.height);
 
-    this.env_context = this.$env[0].getContext("2d");
     this.brain_context = this.$brain[0].getContext("2d");
-
-    this.physics = new Physics(this);
   }
 
   _createClass(Render, {
-    update: {
-      value: function update() {
-        this.physics.update();
+    tick: {
+      value: function tick() {
         this.brain();
         this.info();
       }
     },
     info: {
-      value: function info() {
-        var string = "Fps: " + this.main._fps;
-        this.$info.text(string);
-      }
-    },
-    environment: {
-      value: function environment() {}
+      value: function info() {}
     },
     brain: {
       value: (function (_brain) {
@@ -626,13 +516,10 @@ var Render = (function () {
 
 module.exports = Render;
 
-//Refresh background
-//this.clear(this.env_context, '#111');
-//Draw creature
-//Draw avoid
-//Draw find
+// var string = "Fps: " + this.main._fps;
+// this.$info.text(string);
 
-},{"./physics":11}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 "use strict";
 
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
